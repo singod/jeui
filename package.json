@@ -1,0 +1,69 @@
+{
+  "name": "jeui",
+  "version": "1.0.0",
+  "description": "Jeui is a high quality UI components Library",
+  "private": false,
+  "main": "dist/jeui.umd.min.js",
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "lib": "vue-cli-service build --target lib --name jeui --dest lib src/index.js",
+    "start": "npm run serve",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/singod/jeui.git"
+  },
+  "keywords": [
+    "jeui",
+    "vue",
+    "component",
+    "components",
+    "ui",
+    "framework"
+  ],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/singod/jeui/issues"
+  },
+  "homepage": "https://github.com/singod/jeui#readme",
+  "peerDependencies": {
+    "vue": "^2.6.10"
+  },
+  "devDependencies": {
+    "@vue/cli-plugin-babel": "^3.9.0",
+    "@vue/cli-plugin-unit-mocha": "^3.9.0",
+    "@vue/cli-service": "^3.9.0",
+    "less": "^3.11.1",
+    "less-loader": "^5.0.0",
+    "style-resources-loader": "^1.3.3",
+    "uglifyjs-webpack-plugin": "^2.2.0",
+    "vue-loader": "^15.7.0",
+    "vue-style-loader": "^4.1.1",
+    "vue-template-compiler": "^2.6.10",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "node": true
+    },
+    "extends": [
+      "plugin:vue/essential",
+      "eslint:recommended"
+    ],
+    "rules": {
+      "no-console": "off"
+    },
+    "parserOptions": {
+      "parser": "babel-eslint"
+    }
+  },
+  "postcss": {
+    "plugins": {
+      "autoprefixer": {}
+    }
+  }
+}
