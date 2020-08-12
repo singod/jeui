@@ -6,7 +6,7 @@
   "main": "dist/jeui.umd.min.js",
   "scripts": {
     "serve": "vue-cli-service serve",
-    "lib": "vue-cli-service build --target lib --name jeui --dest lib src/index.js",
+    "lib": "vue-cli-service build --target lib --formats umd,umd-min --name jeui --dest lib src/index.js",
     "start": "npm run serve",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
