@@ -1,0 +1,41 @@
+<meta charset="utf-8">
+<title>jeui demo</title>
+<script src="http://lib.baomitu.com/vue/2.6.11/vue.min.js"></script>
+<script src="./jeui.umd.js"></script>
+
+
+<div id="app">
+<je-button size="big" icon="icon-roundadd">大型按钮</je-button>
+<je-button size="middle">中等按钮</je-button>
+<je-button>(默认) 小型按钮</je-button>
+<je-button size="mini" icon="icon-roundadd">超小按钮</je-button>
+
+<je-button>默认按钮</je-button>
+<je-button type="primary">主要按钮</je-button>
+<je-button type="success">成功按钮</je-button>
+<je-button type="info">信息按钮</je-button>
+<je-button type="warning">警告按钮</je-button>
+<je-button type="danger">危险按钮</je-button>
+<je-button type="dark">灰色按钮</je-button>
+
+<je-button plain>朴素按钮</je-button>
+<je-button type="primary" plain>主要按钮</je-button>
+<je-button type="success" plain>成功按钮</je-button>
+<je-button type="info" plain>信息按钮</je-button>
+<je-button type="warning" plain>警告按钮</je-button>
+<je-button type="danger" plain>危险按钮</je-button>
+<je-button type="dark" plain>灰色按钮</je-button>
+</div>
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            visible: false
+        },
+        methods: {
+            show: function () {
+                this.visible = true;
+            }
+        }
+    })
+</script>
