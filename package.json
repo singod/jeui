@@ -7,8 +7,7 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "lib": "vue-cli-service build --target lib --formats umd,umd-min --name jeui --dest lib src/index.js",
-    "start": "npm run serve",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npm run serve"
   },
   "repository": {
     "type": "git",
@@ -22,7 +21,7 @@
     "ui",
     "framework"
   ],
-  "author": "",
+  "author": "guojun chen",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/singod/jeui/issues"
@@ -41,9 +40,7 @@
     "uglifyjs-webpack-plugin": "^2.2.0",
     "vue-loader": "^15.7.0",
     "vue-style-loader": "^4.1.1",
-    "vue-template-compiler": "^2.6.10",
-    "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "vue-template-compiler": "^2.6.10"
   },
   "eslintConfig": {
     "root": true,
