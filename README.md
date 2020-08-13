@@ -42,7 +42,7 @@ You can find more info [on the website](https://www.jemui.com/).
 Using css via `import`:
 
 ```js
-import 'jeui/dist/jeui.css';
+import 'jeui/lib/jeui.css';
 ```
 
 ## License
