@@ -44,14 +44,14 @@ const ObjectFit = {
   CONTAIN: "contain",
   COVER: "cover",
   FILL: "fill",
-  SCALE_DOWN: "scale-down"
+  SCALE_DOWN: "scale-down",
 };
 let prevOverflow = "";
 
 export default {
   name: "jeImage",
   components: {
-    ImageViewer
+    ImageViewer,
   },
   props: {
     src: String,
@@ -60,16 +60,16 @@ export default {
     scrollContainer: {},
     previewSrcList: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     zIndex: {
       type: Number,
-      default: 2000
+      default: 2000,
     },
     errorHtml: {
       type: String,
-      default: ''
-    }
+      default: "",
+    },
   },
   data() {
     return {
@@ -78,7 +78,7 @@ export default {
       show: !this.lazy,
       imageWidth: 0,
       imageHeight: 0,
-      showViewer: false
+      showViewer: false,
     };
   },
   computed: {
@@ -92,9 +92,7 @@ export default {
       return {};
     },
     alignCenter() {
-      return (
-        !isSupportObjectFit() && this.fit !== ObjectFit.FILL
-      );
+      return !isSupportObjectFit() && this.fit !== ObjectFit.FILL;
     },
     preview() {
       const { previewSrcList } = this;
@@ -108,7 +106,7 @@ export default {
         previewIndex = srcIndex;
       }
       return previewIndex;
-    }
+    },
   },
   mounted() {
     if (this.lazy) {
@@ -135,7 +133,7 @@ export default {
       const { imageWidth, imageHeight } = this;
       const {
         clientWidth: containerWidth,
-        clientHeight: containerHeight
+        clientHeight: containerHeight,
       } = this.$el;
       if (!imageWidth || !imageHeight || !containerWidth || !containerHeight)
         return {};
@@ -146,9 +144,9 @@ export default {
       this.loading = true;
       this.error = false;
       const img = new Image();
-      img.onload = e => this.handleLoad(e, img);
+      img.onload = (e) => this.handleLoad(e, img);
       img.onerror = this.handleError.bind(this);
-      Object.keys(this.$attrs).forEach(key => {
+      Object.keys(this.$attrs).forEach((key) => {
         const value = this.$attrs[key];
         img.setAttribute(key, value);
       });
@@ -191,7 +189,7 @@ export default {
       off(_scrollContainer, "scroll", _lazyLoadHandler);
       this._scrollContainer = null;
       this._lazyLoadHandler = null;
-    }
-  }
+    },
+  },
 };
 </script>

@@ -117,15 +117,3 @@ export default {
   },
 };
 </script>
-
-<style lang="less">
-.je-backTop {
-  position: fixed;
-  cursor: pointer;
-  display: none;
-
-  &.je-backTop-show {
-    display: block;
-  }
-}
-</style>

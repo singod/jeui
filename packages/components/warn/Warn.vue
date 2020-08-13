@@ -93,9 +93,3 @@ export default {
 }
 </script>
 
-<style>
-.je-warn{padding:0 10px;border-width: 1px;border-style: solid;border-radius: 3px;font-size: 12px;}
-.je-warn .je-warn-msg{font-size: 12px;line-height: 26px;}
-.je-warn .je-warn-msg.warn-bold{font-weight: 700;}
-.je-warn .je-warn-desc{opacity: 0.9;line-height: 22px;padding-bottom: 5px;}
-</style>

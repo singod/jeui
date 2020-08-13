@@ -41,7 +41,3 @@ export default {
 }
 </script>
 
-<style>
-.je-layouts-sider {position:relative;min-width:0;background-color: #ffffff;-webkit-transition:all .2s;transition:all .2s;}
-.je-layouts-sider .je-layouts-sider-children{height:100%;margin-top:-0.1px;padding-top:.1px;}
-</style>

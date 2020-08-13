@@ -68,7 +68,7 @@ export default class jeVerify {
     }
 
     for (let i = 0; i < rule.length; i++) {
-      const item = rule[i], type = 'String';
+      let item = rule[i], type = 'String';
       if ('type' in item) {
         type = upperCase(item.type)
       }

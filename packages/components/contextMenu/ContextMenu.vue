@@ -98,37 +98,4 @@ export default {
 };
 </script>
 
-<style>
-.je-context-menu {
-  position: fixed;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
-  z-index: 999;
-  display: none;
-}
-.je-context-menu a {
-  width: 75px;
-  height: 28px;
-  line-height: 28px;
-  text-align: center;
-  display: block;
-  color: #1a1a1a;
-}
-.je-context-menu a:hover {
-  background: #eee;
-  color: #fff;
-}
-.je-context-menu {
-  border: 1px solid #eee;
-  box-shadow: 0 0.5em 1em 0 rgba(0, 0, 0, 0.1);
-  border-radius: 1px;
-}
-.je-context-menu a {
-  padding: 2px;
-}
-.je-context-menu a:hover {
-  background: #42b983;
-}
-</style>
 

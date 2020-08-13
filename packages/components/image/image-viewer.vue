@@ -68,12 +68,12 @@ import { rafThrottle, isFirefox } from "../../utils/util";
 const Mode = {
   CONTAIN: {
     name: "contain",
-    icon: "el-icon-full-screen"
+    icon: "el-icon-full-screen",
   },
   ORIGINAL: {
     name: "original",
-    icon: "el-icon-c-scale-to-original"
-  }
+    icon: "el-icon-c-scale-to-original",
+  },
 };
 
 const mousewheelEventName = isFirefox() ? "DOMMouseScroll" : "mousewheel";
@@ -83,24 +83,24 @@ export default {
   props: {
     urlList: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
     zIndex: {
       type: Number,
-      default: 2000
+      default: 2000,
     },
     onSwitch: {
       type: Function,
-      default: () => {}
+      default: () => {},
     },
     onClose: {
       type: Function,
-      default: () => {}
+      default: () => {},
     },
     initialIndex: {
       type: Number,
-      default: 0
-    }
+      default: 0,
+    },
   },
 
   data() {
@@ -115,8 +115,8 @@ export default {
         deg: 0,
         offsetX: 0,
         offsetY: 0,
-        enableTransition: false
-      }
+        enableTransition: false,
+      },
     };
   },
   computed: {
@@ -138,29 +138,29 @@ export default {
         transform: `scale(${scale}) rotate(${deg}deg)`,
         transition: enableTransition ? "transform .3s" : "",
         "margin-left": `${offsetX}px`,
-        "margin-top": `${offsetY}px`
+        "margin-top": `${offsetY}px`,
       };
       if (this.mode === Mode.CONTAIN) {
         style.maxWidth = style.maxHeight = "100%";
       }
       return style;
-    }
+    },
   },
   watch: {
     index: {
-      handler: function(val) {
+      handler: function (val) {
         this.reset();
         this.onSwitch(val);
-      }
+      },
     },
     currentImg(val) {
-      this.$nextTick(_ => {
+      this.$nextTick((_) => {
         const $img = this.$refs.img[0];
         if (!$img.complete) {
           this.loading = true;
         }
       });
-    }
+    },
   },
   methods: {
     hide() {
@@ -168,7 +168,7 @@ export default {
       this.onClose();
     },
     deviceSupportInstall() {
-      this._keyDownHandler = rafThrottle(e => {
+      this._keyDownHandler = rafThrottle((e) => {
         const keyCode = e.keyCode;
         switch (keyCode) {
           // ESC
@@ -197,19 +197,19 @@ export default {
             break;
         }
       });
-      this._mouseWheelHandler = rafThrottle(e => {
+      this._mouseWheelHandler = rafThrottle((e) => {
         const delta = e.wheelDelta ? e.wheelDelta : -e.detail;
         if (delta > 0) {
           //放大
           this.handleActions("zoomIn", {
             zoomRate: 0.015,
-            enableTransition: false
+            enableTransition: false,
           });
         } else {
           //缩小
           this.handleActions("zoomOut", {
             zoomRate: 0.015,
-            enableTransition: false
+            enableTransition: false,
           });
         }
       });
@@ -234,12 +234,12 @@ export default {
       const { offsetX, offsetY } = this.transform;
       const startX = e.pageX;
       const startY = e.pageY;
-      this._dragHandler = rafThrottle(ev => {
+      this._dragHandler = rafThrottle((ev) => {
         this.transform.offsetX = offsetX + ev.pageX - startX;
         this.transform.offsetY = offsetY + ev.pageY - startY;
       });
       on(document, "mousemove", this._dragHandler);
-      on(document, "mouseup", ev => {
+      on(document, "mouseup", (ev) => {
         off(document, "mousemove", this._dragHandler);
       });
 
@@ -251,7 +251,7 @@ export default {
         deg: 0,
         offsetX: 0,
         offsetY: 0,
-        enableTransition: false
+        enableTransition: false,
       };
     },
     toggleMode() {
@@ -279,7 +279,7 @@ export default {
         zoomRate: 0.2,
         rotateDeg: 90,
         enableTransition: true,
-        ...options
+        ...options,
       };
       const { transform } = this;
       switch (action) {
@@ -301,14 +301,14 @@ export default {
           break;
       }
       transform.enableTransition = enableTransition;
-    }
+    },
   },
   mounted() {
     this.deviceSupportInstall();
     // add tabindex then wrapper can be focusable via Javascript
     // focus wrapper so arrow key can't cause inner scroll behavior underneath
     this.$refs["je-image-viewer__wrapper"].focus();
-  }
+  },
 };
 </script>
 

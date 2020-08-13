@@ -38,9 +38,3 @@ export default {
   }
 }
 </script>
-
-<style>
-.je-layouts,.je-layouts * {-webkit-box-sizing:border-box;box-sizing:border-box}
-.je-layouts {height: 100%;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-box-flex:1;-webkit-flex:auto;-ms-flex:auto;flex:auto;-webkit-box-orient:vertical;-webkit-box-direction:normal;-webkit-flex-direction:column;-ms-flex-direction:column;flex-direction:column;min-height:0;background:#f0f2f5}
-.je-layouts.je-layouts-has-sider {-webkit-box-orient: horizontal;-webkit-box-direction: normal;flex-direction: row;}
-</style>
