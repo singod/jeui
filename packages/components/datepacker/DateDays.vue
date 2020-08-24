@@ -23,11 +23,11 @@ export default {
   props: {
     date: {
       type: Array,
-      default: () => []
+      default() { return [] }
     },
     select: {
       type: Array,
-      default: () => []
+      default() { return [] }
     },
     dateLength: {
       type: Number,

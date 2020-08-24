@@ -11,7 +11,7 @@
         @mouseleave.stop="hovering = false"
       >
         <slot name="prefix">
-          <Icon v-if="prefix&&prefix!=''" :type="prefix" class="je-pl4" />
+          <Icon v-if="prefix&&prefix!=''" :type="prefix" class="je-pl4 je-c9" />
         </slot>
         <input
           :class="sizeClass"

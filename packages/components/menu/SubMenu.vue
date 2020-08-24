@@ -1,78 +1,159 @@
 <template>
-  <div class="je-submenu vertical">
-    <h3
-      class="je-submenu-title"
-      v-if="$slots.title"
-      @mouseenter="openMenu"
-      @mouseleave="closeMenu"
-      @click="toggleMenu"
-      :style="itemStyle"
-    >
-      <div class="je-submenu-caption">
+  <li ref="trigger" :class="submenuClass" @mouseenter="handleMouseEnter" @mouseleave="handleMouseLeave">
+    <div class="je-menu-submenu-title" ref="reference" @click.stop="toggleMenu">
+      <div class="je-menu-submenu-caption">
         <slot name="title"></slot>
       </div>
-      <Icon custom="je-f14 je-fr arrows" :class="isExpand ? 'rotate' : ''" type="icon-movedown"></Icon>
-    </h3>
-    <FoldAnimate>
-      <div class="je-submenu-content" v-show="isExpand">
+      <Icon custom="je-f14 je-fr je-menu-submenu-arrows" type="icon-movedown"></Icon>
+    </div>
+    <FoldAnimate v-if="mode === 'inline'">
+      <ul class="je-menu" v-show="openMenu">
         <slot></slot>
-      </div>
+      </ul>
     </FoldAnimate>
-  </div>
+    <transition name="slide-up" v-else>
+      <div class="je-menu-dropdown-popover" :style="dropStyle"
+        ref="popover" v-show="$slots.default && openMenu"
+      >
+        <ul class="je-menu-dropdown-menu">
+          <slot></slot>
+        </ul>
+      </div>
+    </transition>
+  </li>
 </template>
 
 <script>
 import FoldAnimate from "../../utils/foldAnimate";
-import mixin from "./mixin";
+import { findComponentUpward } from "../../utils/findComponent";
+import Emitter from "../../utils/emitter";
 import Icon from "../icon/Icon.vue";
+
 export default {
-  name: "jeSubMenu",
-  mixins: [mixin],
-  data() {
-    return {
-      isExpand: false,
-      defaultStatus: false,
-      ParentLayerNum: 0,
-      contentStyle: {},
-    };
-  },
+  name: "jeSubmenu",
   components: {
     Icon,
     FoldAnimate,
   },
-  watch: {},
-  created() {},
-  mounted() {
-    this.findParentComponents(this);
-  },
-  methods: {
-    openMenu() {},
-    closeMenu() {},
-    toggleMenu() {
-      let that = this,
-        height = "0px",
-        timer,
-        conTimer;
-      that.isExpand = !that.isExpand;
+  mixins: [Emitter],
+  props: {
+    disabled: {
+      type: Boolean,
+      default: false,
     },
-    findParentComponents(val) {
-      let parent = val.$parent,
-        opts = parent.$options;
-      if (parent && (opts.name == "jeSubMenu" || opts.name == "jeMenu")) {
-        this.ParentLayerNum = this.ParentLayerNum + 1;
-        this.findParentComponents(parent);
+    opened: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  data() {
+    return {
+      active: false,
+      openMenu: this.opened,
+      dropWidth: null, 
+      parentMenu: findComponentUpward(this, "jeMenu"),
+    };
+  },
+  watch: {
+    mode(val) {
+      if (val !== "inline") {
+        this.openMenu = false;
+        // this.handleMouseLeave()
+      }
+    },
+    openMenu(val) {
+      if (this.mode === "inline") return;
+      if (val) {
+        this.dropWidth = this.parentMenu.width;
+        this.resetDropdownPosition();
       }
     },
   },
+  mounted() { 
+    this.dropWidth = this.parentMenu.width,
+    this.$on("on-menu-item-select", (name) => {
+      if (this.mode !== "inline") {
+        this.openMenu = false;
+      }
+      this.dispatch("jeMenu", "on-menu-item-select", name);
+    });
+    this.$on("on-update-active", (status) => {  
+      this.active = status;
+    });
+  },
+  methods: {
+    resetDropdownPosition() {
+      const popover = this.$refs.popover;
+      const trigger = this.$refs.trigger;
+      const parent = this.$parent;
+      const name = parent.$options.name;
+      if (this.mode === "vertical") {
+        popover.style.left = "initial";
+        popover.style.right = `-${trigger.offsetWidth + 4}px`;
+        popover.style.top = "0";
+      } else if (parent && name !== "jeSubmenu") {
+        popover.style.left = "0";
+        popover.style.right = "initial";
+        popover.style.top = `${trigger.offsetHeight + 2}px`;
+      } else {
+        popover.style.left = "initial";
+        popover.style.right = `-${trigger.offsetWidth + 4}px`;
+        popover.style.top = "0";
+      }
+    },
+    toggleMenu() {
+      if(!this.$slots.default) this.disabled = true;
+      if (this.disabled || this.mode !== "inline") return;
+      const opened = this.openMenu;
+      if (this.inlineCollapsed) {
+        this.parentMenu.$children.forEach((item) => {
+          if (item.$options.name === "jeSubmenu") {
+            item.openMenu = false;
+          }
+        });
+      }
+      this.openMenu = !opened;
+    },
+    handleMouseEnter() {
+      if (this.disabled || this.mode === "inline") return;
+      clearTimeout(this.timeout);
+      this.timeout = setTimeout(() => {
+        this.openMenu = true;
+      }, 100);
+    },
+    handleMouseLeave() {
+      if (this.disabled || this.mode === "inline") return;
+      clearTimeout(this.timeout);
+      this.timeout = setTimeout(() => {
+        this.openMenu = false;
+      }, 100);
+    },
+  },
   computed: {
-    itemStyle() {
+    mode() {
+      return this.parentMenu.mode;
+    },
+    inlineCollapsed() {
+      return this.parentMenu.inlineCollapsed;
+    },
+    dropStyle() {
       return {
-        paddingLeft:
-          this.ParentLayerNum - 1 == 0 ? "" : 15 * this.ParentLayerNum + "px",
+        "min-width": this.dropWidth,
       };
+    },
+    placementValue() {
+      return this.mode === "vertical" ? "right-top" : "bottom";
+    },
+    submenuClass() {
+      return [
+        "je-menu-submenu",
+        {
+          ["je-menu-submenu-active"]: this.active,
+          ["je-menu-submenu-opened"]: this.openMenu,
+          ["je-menu-submenu-disabled"]: this.disabled,
+        },
+      ];
     },
   },
 };
 </script>
-
-

@@ -60,7 +60,7 @@ export default {
     scrollContainer: {},
     previewSrcList: {
       type: Array,
-      default: () => [],
+      default() { return [] },
     },
     zIndex: {
       type: Number,

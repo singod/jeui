@@ -103,7 +103,7 @@ export default {
     },
     showSize: {
       type: Array,
-      default: () => []
+      default() { return [] }
     },
     showTotal: {
       type: Boolean,

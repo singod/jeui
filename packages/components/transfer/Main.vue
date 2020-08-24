@@ -8,7 +8,7 @@
       :title="titleList[0] || '列表1'"
       :data="source"
       :default-check="sourceDefaultChecked"
-      :placeholder="filterPlaceholder || '请输入搜索内容'"
+      :placeholder="placeholder || '请输入搜索内容'"
       @checkChange="onSourceChange"
       :style="{height: height}"
     ></transfer-panel>
@@ -32,7 +32,7 @@
       :title="titleList[1] || '列表2'"
       :data="target"
       :default-check="targetDefaultChecked"
-      :placeholder="filterPlaceholder || '请输入搜索内容'"
+      :placeholder="placeholder || '请输入搜索内容'"
       @checkChange="onTargetChange"
       :style="{height: height}"
     ></transfer-panel>
@@ -43,6 +43,7 @@
 import TransferPanel from "./Transfer-panel";
 import JeButton from "../button/Button";
 import Icon from "../icon/Icon";
+
 export default {
   components: {
     TransferPanel,
@@ -62,7 +63,7 @@ export default {
         return [];
       },
     },
-    replace: {
+    fields: {
       type: Object,
       default() {
         return {
@@ -96,7 +97,7 @@ export default {
         return [];
       },
     },
-    filterPlaceholder: {
+    placeholder: {
       type: String,
       default: "",
     },
@@ -116,13 +117,13 @@ export default {
   computed: {
     source() {
       return this.data.filter(
-        (item) => this.value.indexOf(item[this.replace.key]) === -1
+        (item) => this.value.indexOf(item[this.fields.key]) === -1
       );
     },
     target() {
       // if (this.targetOrder === 'original') {
       return this.data.filter(
-        (item) => this.value.indexOf(item[this.replace.key]) > -1
+        (item) => this.value.indexOf(item[this.fields.key]) > -1
       );
       // } else {
       //   return this.value.reduce((arr, cur) => {
@@ -160,7 +161,7 @@ export default {
     addToTarget() {
       let currentValue = this.value.slice();
       const items = [];
-      const key = this.replace.key;
+      const key = this.fields.key;
       this.data.forEach((item) => {
         let value = item[key];
         if (

@@ -4,29 +4,31 @@
     <!-- <ul class="yearlist">
       <li v-for="(item, index) in yearList" :key="index" :class="item.style">{{item.value}}</li>
     </ul> -->
-    <div class="yearlist" :class="yearClass" jeScroll>
+    <div class="yearlist" :class="yearClass">
       <table>
         <tr v-for="(item,idx) in yearList" :key="idx">
           <td v-for="(y,ids) in item" :key="ids" :class="y.style" @click="clickYearMonth(y.value,'Year')">{{y.value}}</td>
         </tr>
       </table>
     </div>
-    <div v-if="dateLength>1" class="monthlist" ref="month" jeScroll>    
+    <div v-if="dateLength>1" class="monthlist" ref="month">   
+      <Scrollbar :scrollTop="ymTop[index]"> 
       <p v-for="(m,ids) in monthList[index]" :key="ids" :class="m.style" 
       @click="clickYearMonth(m.value,'Month')">{{m.value}}月</p>
+      </Scrollbar>
     </div>
   </div>
 </div>
 </template>
 
 <script>
-import Scrollbar from '../../utils/scrollbar.js'
+import Scrollbar from '../scrollbar/Scrollbar.vue'
 export default {
   name: "DateYear",
   props: {
     date:{
       type: Array,
-      default: () => []
+      default() { return [] }
     },
     multiPane: {
       type: Boolean,
@@ -45,8 +47,12 @@ export default {
       default: ""
     }
   },
+  components: {
+    Scrollbar
+  },
   data() {
     return {
+      ymTop: [0,0],
       yearList: [],
       monthList:[]
     }
@@ -60,7 +66,6 @@ export default {
     this.initRender();
     this.$nextTick(() => {  
       if(this.dateLength > 1) {
-        Scrollbar.initAll();
         this.setScrollTop()
       }
     })
@@ -115,20 +120,18 @@ export default {
       this.$emit('change', {value: parseInt(vals), type})
     },
     setScrollTop(){   
-      this.$refs.month.forEach(el => {
-        let topVal = el.querySelector('p.selected').offsetTop,
-          scrollcontent = el.querySelector('[scrollcontent]');   
-        scrollcontent.scrollTop = topVal - 97;
+      let topArr = [];  
+      this.$refs.month.forEach((el) => {
+        let topVal = el.querySelector('p.selected').offsetTop;   
+        topArr.push(topVal - 97)
       })
+      this.$set(this,'ymTop',topArr)
     }
   },
   computed:{
     yearClass() {
       return this.dateLength === 1 ? ['year-full'] : ''
     }
-  },
-  destroyed () {
-    Scrollbar.unbindAll();
   }
 }
 </script>

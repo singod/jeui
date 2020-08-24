@@ -70,7 +70,7 @@ export default {
   props: {
     urlList: {
       type: Array,
-      default: () => [],
+      default() { return [] },
     },
     initialIndex: {
       type: Number,

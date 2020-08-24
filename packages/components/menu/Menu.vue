@@ -1,108 +1,118 @@
 <template>
-  <div :class="menuClass" :style="{width:width}">
+  <ul :class="menuClass" :style="ulStyle">
     <slot></slot>
-  </div>
+  </ul>
 </template>
+
 <script>
-let isVertical = false;
+import Emitter from "../../utils/emitter";
+import { findComponentsDownward } from "../../utils/findComponent";
 export default {
   name: "jeMenu",
+  mixins: [Emitter],
   props: {
     width: {
       type: String,
-      default: "",
+      default: "240px",
     },
-    label: {
-      type: String,
-      default: "",
-    },
-    skin: {
-      type: String,
-      default: "",
-    },
-    type: {
-      type: String,
-      default: "",
-    },
-    expand: {
-      type: Array,
-      default: () => [],
-    },
-    expandAll: {
+    router: {
       type: Boolean,
       default: false,
     },
     mode: {
       type: String,
-      default: "vertical",
-      validator(val) {
-        return ["horizontal", "vertical"].indexOf(val) > -1;
-      },
+      default: "inline",
+      validator: (val) => ["inline", "horizontal", "vertical"].indexOf(val) > -1,
+    },
+    theme: {
+      type: String,
+      default: "light",
+      validator: (val) => ["light", "dark"].indexOf(val) > -1,
+    },
+    activeName: [String, Number],
+    inlineCollapsed: {
+      type: Boolean,
+      default: false,
+    },
+    expand: {
+      type: Array,
+      default() { return [] },
+    },
+    expandAll: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {
     return {
-      typeClass: this.type,
-      isActive: false,
+      currActiveName: this.activeName,
     };
   },
+  
+  watch: {
+    activeName(val) {
+      this.currActiveName = val;
+    },
+    currActiveName() {
+      this.updateActiveName();
+    },
+  },
   mounted() {
-    // this.direction = this.mode == 'vertical' ? true : false;
-    this.expandAll ? this.expandAllMenu() : this.expandMenu();
-    this.setChildrenDirection();
+    if(this.expandAll && this.mode === "inline") {
+      this.expandAllMenu()
+    } 
+    this.updateActiveName();
+    this.$on("on-menu-item-select", (item) => {
+      this.currActiveName = item.name;
+      this.$emit("select", item);
+      if (this.router) {
+        this.routeMenuItem(item);
+      }
+    });
   },
   methods: {
-    hasOpened() {
-      this.$children.every((item) => {
-        if (item.isActive) this.isActive = true;
-        return true;
-      });
-      return false;
-    },
     expandAllMenu() {
       this.$children.forEach((val, idx) => {
-        if (val.$children.length > 0 && val.$options.name == "jeSubMenu") {
-          val.isExpand = true;
+        if (val.$children.length > 0 && val.$options.name == "jeSubmenu") {
+          val.openMenu = true;
           val.defaultStatus = true;
         }
       });
     },
-    expandMenu() {
-      if (this.expand.length == 0) return;
-      this.expand.forEach((v, i) => {
-        this.$children.forEach((val, idx) => {
-          if (
-            idx == v &&
-            val.$children.length > 0 &&
-            val.$options.name == "jeSubMenu"
-          ) {
-            val.isExpand = true;
-            val.defaultStatus = true;
-          }
-        });
-      });
-    },
-    setChildrenDirection(that) {
-      that = that || this;
-      if (isVertical) {
-        that.$children.forEach((val, idx) => {
-          if (val.$options.name == "jeSubMenu") {
-            val.direction = true;
-            this.setChildrenDirection(val);
-          }
+    updateActiveName() {
+      if (typeof this.currActiveName === "undefined") {
+        this.currActiveName = -1;
+      }
+      const submenus = findComponentsDownward(this, "jeSubmenu");
+      if (submenus && submenus.length) {
+        submenus.forEach((submenu) => {   
+          submenu.$emit("on-update-active", false);
         });
       }
+      this.broadcast("jeMenuItem", "on-update-active", this.currActiveName);
+    },
+    routeMenuItem(item) {
+      const route = item.to || {};
+      item.replace ? this.$router.replace(route) : this.$router.push(route);
     },
   },
+  
   computed: {
     menuClass() {
-      let that = this;
       return [
         "je-menu",
-        that.mode === "vertical" ? "je-menu-vertical" : "je-menu-horizontal",
-        that.skin,
-        that.type,
-      ];
+        {
+          [`je-menu-${this.theme}`] : this.theme,
+          [`je-menu-${this.mode}`] : this.mode
+        }
+      ]
+    },
+    ulStyle() {
+      let style = {};
+      if (this.mode === "inline" || this.mode === "vertical") {
+        style.width = this.width;
+      }
+      return style;
     },
   },
 };

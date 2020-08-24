@@ -47,10 +47,7 @@ const setElementSize = function(inputElem, openElem, direction) {
   }
   // 如果底部超出边界
   if (topSize + elemHeight > winArea()) {
-    topSize =
-      rect.top > elemHeight
-        ? rect.top - elemHeight - diff * 2
-        : winArea() - elemHeight - 1;
+    topSize = rect.top > elemHeight ? rect.top - elemHeight - diff * 2 : winArea() - elemHeight - 1;
   }
   // 根据目标元素计算弹层位置
   // topSize = Math.max(topSize + scrollArea() + diff, 1);

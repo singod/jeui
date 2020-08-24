@@ -1,6 +1,6 @@
 import Vue from 'vue';
 import jeLayer from './Layer.vue';
-
+let instance;
 const instanceLayer = Vue.extend(jeLayer);
 // 绑定window的history事件
 window.addEventListener('popstate', () => {
@@ -11,7 +11,6 @@ window.addEventListener('popstate', () => {
 });
 
 const Layer = (options = {}) => {
-  let instance;
   if (!instance) {
     instance = new instanceLayer().$mount();
   }

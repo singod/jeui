@@ -35,7 +35,7 @@ export default {
   props: {
     date: {
       type: Array,
-      default: () => []
+      default() { return [] }
     },
     multiPane: {
       type: Boolean,

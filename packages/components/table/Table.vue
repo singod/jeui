@@ -1,201 +1,265 @@
 <template>
   <div class="je-table">
-    <div class="je-table-box" :style="{width:width,height:tableHeight}">
+    <div class="table-box" :style="{width:width,height:tableHeight}" ref="box">
       <div class="hidden-column" ref="hiddenColumns"><slot></slot></div>
-      <div class="je-table-header" :style="{paddingRight:barWidth + 'px'}">
-        <div class="je-table-thead" ref="headwrap">
-          <TableHead :columns="columns" :selectClass="selectChecked" :style="{width:totalWidth + 'px'}"></TableHead>
-        </div>
-      </div>     
-      <div class="je-table-body" ref="bodywrap" :style="{height:bodyHeight}">
-        <TableBody :data="tableData" :style="{width:totalWidth + 'px'}"></TableBody>
-      </div>
-      <div class="je-table-fixed left" v-if="leftData.length>0" v-show="leftShadow"
-        :style="{bottom: (botScroll?barWidth:1) + 'px'}">
-        <div class="je-table-thead" :style="{width:leftWidth + 'px'}">
-          <TableHead :columns="columns" :selectClass="selectChecked" :style="{width:totalWidth + 'px',float:'left'}"></TableHead>
-        </div>
-        <div class="je-table-body" :style="{width:leftWidth + 'px'}" ref="leftfixbody">
-          <TableBody :data="tableData" :style="{width:totalWidth + 'px',float:'left'}"></TableBody>
+      <div class="table-header" :style="{paddingRight:barWidth + 'px'}" v-if="showHeader">
+        <div class="table-thead" ref="headwrap">
+        <TableHead :selectClass="selectChecked" :style="{width:totalWidth }"></TableHead>
         </div>
       </div>
-      <div class="je-table-fixed right" v-if="rightData.length>0" v-show="rightShadow"
-        :style="{bottom: (botScroll?barWidth:1) + 'px',right:barWidth + 'px'}">
-        <div class="je-table-thead" :style="{width:rightWidth + 'px'}">
-          <TableHead :columns="columns" :selectClass="selectChecked" :style="{width:totalWidth + 'px',float:'right'}"></TableHead>
-        </div>
-        <div class="je-table-body" :style="{width:rightWidth + 'px'}" ref="rightfixbody">
-          <TableBody :data="tableData" :style="{width:totalWidth + 'px',float:'right'}"></TableBody>
-        </div>
+      <div class="table-body" :style="{height:bodyHeight}" @scroll.stop="handleScrollBody" ref="bodywrap">
+        <TableBody :data="tableData" :style="{width:totalWidth }"></TableBody>
       </div>
+      <template v-if="leftData.length > 0">
+        <div class="table-fixed left" :style="{bottom:`${barWidth}px`}" v-show="leftShadow">
+          <div class="table-header" :style="{width:leftWidth + 'px'}" v-if="showHeader">
+            <TableHead :selectClass="selectChecked" :style="{width:totalWidth ,float:'left'}"></TableHead>
+          </div>
+          <div class="table-body" :style="{width:leftWidth + 'px'}" v-mousewheel="handleScrollFixed" ref="leftfixbody">
+            <TableBody :data="tableData" :style="{width:totalWidth ,float:'left'}"></TableBody>
+          </div>
+        </div>
+      </template>
+      <template v-if="rightData.length > 0">
+        <div class="table-fixed right" :style="{bottom:`${barWidth}px`,right:(rightShadow ? barWidth:0) + 'px'}" v-show="rightShadow">
+          <div class="table-header" :style="{width:rightWidth + 'px'}" v-if="showHeader">
+            <TableHead :selectClass="selectChecked" :style="{width:totalWidth ,float:'right'}"></TableHead>
+          </div>
+          <div class="table-body" :style="{width:rightWidth + 'px'}" v-mousewheel="handleScrollFixed" ref="rightfixbody">
+            <TableBody :data="tableData" :style="{width:totalWidth ,float:'right'}"></TableBody>
+          </div>
+        </div>
+      </template>
     </div>
   </div>
 </template>
 <script>
-import TableHead from './TableHead.vue'
-import TableBody from './TableBody.vue'
+import Emitter from "../../utils/emitter";
+import { findComponentsDownward } from "../../utils/findComponent";
+import TableHead from "./TableHead.vue";
+import TableBody from "./TableBody.vue";
+import MouseWheel from "./mouseWheel";
 
 export default {
-  name:"jeTable",
-  props:{
-    width:{
-      type: [String,Number],
-      default: '100%'
+  name: "jeTable",
+  mixins: [Emitter],
+  props: {
+    width: {
+      type: [String, Number],
+      default: "100%",
     },
-    height:{
-      type: [String,Number],
-      default: ''
+    height: {
+      type: [String, Number],
+      default: "",
     },
-    data:{
-      type: [Array,String],
-      default:()=>[]
+    data: {
+      type: [Array, String],
+      default() {
+        return [];
+      },
     },
-    checkbox:false,
-    radio:false,
+    checkbox: {
+      type: Boolean,
+      default: false,
+    },
+    radio: {
+      type: Boolean,
+      default: false,
+    },
     emptyText: {
       type: String,
-      default: '暂无数据'
+      default: "暂无数据",
+    },
+    showHeader: {
+      type: Boolean,
+      default: true,
+    },
+    headerStyle: {
+      type: Object,
+      default() {
+        return {};
+      },
     },
   },
   components: {
     TableHead,
     TableBody,
   },
-  data () {
-    return {
-      columns:[],
-      columnsFilter: [], // 表头，过滤掉扩展列的
-      selectedRows: [], // 已选择的行
-      selectChecked: 'unSelect', // 全选状态 unSelect为全不选，someSelect选择了部分，checked全选
-      leftData:[],
-      leftWidth: 0,
-      rightData:[],
-      rightWidth: 0,
-      tableWidth:"",
-      tableHeight:"",
-      totalWidth:0,
-      allWidth:0,
-      fixedWidth:0,
-      surplusWidth:0,
-      surplusLength:0,
-      barWidth:0,
-      totalPer:{},
-      bodyHeight:"",
-      botScroll:false,
-      leftShadow:false,
-      rightShadow:true,
-      selectAllClick:null, // 全选/返选
-      maxLine:1, //表头总共占的行数
-      headColumns: [],
-      bodyColumns: [],
+  directives: {
+    mousewheel: {
+      bind(element, binding) { 
+        MouseWheel(element, binding.value)       
+      }
     }
   },
-  mounted () {
-    let that = this
-    setTimeout(()=>{
-      let headHeight = that.$refs.headwrap.offsetHeight
-      if(/^\d+$/.test(that.height)){
-        that.tableHeight = that.height + "px"
-        that.bodyHeight = (that.height - headHeight) + "px"
-      }else{
-        that.tableHeight = that.height
-      }
-      if(that.allWidth <= that.$el.clientWidth){
-        that.rightShadow = false;
-      }
-      that.$refs.hiddenColumns.remove()
-    },10)
-    that.getAllCellWidth()
-    that.resize()
+  data() {
+    return {
+      tableid: Math.random().toString(36).substr(6),
+      tableData: this.data || [],
+      columns: [],
+      columnsFilter: [], // 表头，过滤掉扩展列的
+      columnsExtend: [], 
+      checkRows: [], // 已选择的行
+      selectChecked: "unSelect", // 全选状态 unSelect为全不选，someSelect选择了部分，checked全选
+      leftData: [],
+      leftWidth: 0,
+      rightData: [],
+      rightWidth: 0,
+      tableWidth: "",
+      tableHeight: "",
+      totalWidth: "0px",
+      caclWidth: 0,
+      allWidth: 0,
+      fixedWidth: 0,
+      surplusWidth: 0,
+      barWidth: 0,
+      bodyHeight: "",
+      botScroll: false,
+      leftShadow: false,
+      rightShadow: true,
+      maxLine: 1, //表头总共占的行数
+      headColumns: [],
+      bodyColumns: [],
+      columnsWidth: []
+    };
   },
-  computed: {
-    tableData: {
-      get() {
-        return this.data
-      },
-    },
+  mounted() {
+    this.$nextTick(() => {
+      this.$refs.hiddenColumns.remove();    
+      this.getAllColumn();
+      this.windowResize();          
+    })
   },
+  computed: {},
   methods: {
-    getAllCellWidth(){
-      let that= this
-      that.$nextTick(()=>{
-        let childs = that.$children;
+    getAllColumn() {
+      this.$nextTick(() => {        
         let columns = [], leftWidth = 0, rightWidth = 0;
         // 遍历子组件，只返回column组件
-        childs.forEach(child => {
-          if(child.$options.name === 'jeTableColumn'){
-            let fixWidth = 0, minWidth = 0
-            if(child.width){
-              fixWidth = child.width;  // 最大长度
-            }else if(child.minWidth){
-              minWidth = child.minWidth; // 最小长度
-            }else{
-              minWidth = 80;   // 默认最小长度
-            }
-            let objs = {
-              label: child.label || '',
-              prop: child.prop || '',
-              align: child.align || '',
-              width: fixWidth || '',
-              minWidth: minWidth || '',
-              fixed: child.fixed || '',
-              type: child.type || '',
-              title: child.title || '',
-              renders: child.renders,
-              $children: child.$children || [],
-            }
-            columns.push(objs)
-            if(child.fixed == 'left'){
-              that.leftData.push(objs)
-              leftWidth += objs.width
-            }
-            if(child.fixed == 'right'){
-              that.rightData.push(objs)
-              rightWidth += objs.width
-            }
+        this.recursionProps(this.$children).forEach((child) => {
+          columns.push(child);
+          if (child.fixed == "left") {
+            this.leftData.push(child);
+            leftWidth += child.colWidth;
+          }
+          if (child.fixed == "right") {
+            this.rightData.push(child);
+            rightWidth += child.colWidth;
           }
         });
-        that.$set(that,'leftWidth',leftWidth-1)
-        that.$set(that,'rightWidth',rightWidth-1)
+        // 设置左浮动的总宽度
+        this.$set(this, "leftWidth", leftWidth - 1);
+        // 设置右浮动的总宽度
+        this.$set(this, "rightWidth", rightWidth - 1);
+        this.$set(this, "columns", columns);
         // 返回过滤掉扩展列的
-        that.columnsFilter = childs.filter(item => {
-          return item.$options.name === 'jeTableColumn' && item.type !== 'extend'
-        })
-        
-        that.columns = columns
-        that.setColumnSort(columns)      
-        that.maxLine = that.headerRowspan(that.$children)
-        that.columnsHandle(columns)
+        this.columnsExtend = columns.filter(item => item.type === "extend");
+        // 返回过滤掉扩展列的
+        this.columnsFilter = columns.filter(item => item.type !== "extend");             
+        this.handleColumns();
+        this.handleBodyColumns();
+        this.calcAllWidth()
+      });
+    },  
+    recursionProps(children) {
+      let columns = []
+      children.forEach((child) => {
+        if (child.$options.name === "jeTableColumn") {
+          child.colChildren = [];
+          if(child.$children && child.$children.length > 0) {
+            child.colChildren = this.recursionProps(child.$children);
+          }
+          child.colWidth = parseInt(child.width);
+          child.colMinWidth = parseInt(child.minWidth || 80);
+          columns.push(child)
+        }
       })
+      return columns;
     },
-    setColumnSort(data){
-      let that = this, cols = []
-      const forColumn = (childs) => {
-        childs.forEach(child => {
-          if(child.$children && child.$children.length>0){
-            forColumn(child.$children)
-          }else{
-            if(child.width){
-              that.fixedWidth += child.width
-            }else{
-              that.surplusWidth += child.minWidth
-              that.surplusLength += 1
-            }
-            cols.push(child)
-          }           
-        })
+    calcAllWidth() {
+      let allColsWidth = [], widthValue = 0, miniWidthSize = 0, caclBeforeWidth = 0,
+        boxWidth = this.$refs.box.clientWidth, totalWidth = 0;      
+      this.barWidth = this.getScrollbarWidth();
+      
+      // 递归遍历出所有宽度
+      (function everyWidth(childs) {
+        childs.forEach((child) => {
+          if (child.$children && child.$children.length > 0) {
+            everyWidth(child.$children);
+          } else {
+            let currWidth = child.width ? {colWidth: child.colWidth} : {colMinWidth: child.colMinWidth};
+            allColsWidth.push(currWidth);
+          }
+        });
+      })(this.columnsFilter);
+      // 遍历出剩余的值
+      allColsWidth.forEach(item => {
+        caclBeforeWidth += (item.colWidth ? item.colWidth : item.colMinWidth);
+        if(item.colMinWidth && item.colMinWidth > 0) miniWidthSize += 1;
+        if(item.colWidth && item.colWidth > 0) widthValue += item.colWidth;
+      });
+      if(caclBeforeWidth < boxWidth) {
+        let surplusWidth = boxWidth - widthValue, minPer = {}, total = 0;
+        // 遍历计算出剩余知道百分比
+        allColsWidth.forEach((item, i) => {
+          if (item.colMinWidth && item.colMinWidth > 0) {
+            let fixVal = (parseInt(item.colMinWidth) / surplusWidth) * 100;
+            minPer[`${i}`] = parseInt(fixVal);
+            total += parseInt(fixVal);
+          }
+        });
+        // 根据剩余值和剩余百分比计算出真正值
+        let surplusPers = (100 - total) / miniWidthSize;
+        for (let k in minPer) {
+          let realWidth = parseInt(surplusWidth * (minPer[k] + surplusPers) / 100);
+          // 判断计算后的值是否大于最小值
+          if(realWidth > allColsWidth[k].colMinWidth) {
+            allColsWidth[k].colMinWidth = realWidth;
+          }
+        }
       }
-      forColumn(data)
-      that.allWidth = that.fixedWidth + that.surplusWidth;
-      that.bodyColumns = cols
-      that.calcWidth()
+      this.columnsWidth = [];
+      allColsWidth.forEach(item => {
+        let width = item.colWidth && item.colWidth > 0 ? item.colWidth : item.colMinWidth;
+        this.columnsWidth.push(width);
+        totalWidth += width;
+      })
+
+      this.$nextTick(() => {
+        if (/^\d+$/.test(this.height)) {
+          let headHeight = this.$refs.headwrap.offsetHeight;
+          this.tableHeight = `${this.height}px`;
+          this.bodyHeight = `${parseInt(this.height) - headHeight}px`;
+        } else {
+          this.tableHeight = this.height;
+        } 
+        this.$nextTick(() => {
+          let bodyWrap = this.$refs.bodywrap;
+          let currCaclWidth = totalWidth
+          if(totalWidth > boxWidth) {
+            currCaclWidth = totalWidth;
+          }
+          if(bodyWrap.scrollHeight > bodyWrap.offsetHeight){
+            currCaclWidth = totalWidth - this.barWidth - 1;
+          }else{
+            currCaclWidth = boxWidth;
+          }
+          this.caclWidth = currCaclWidth;
+          this.totalWidth = `${currCaclWidth}px`;
+          if (this.caclWidth <= boxWidth) {
+            this.rightShadow = false;
+          }
+        })
+      })
+      
+    },
+    setWidthState() {
+
     },
     headerColspan(items) {
       let max = 0;
       (function getMaxCol(data) {
-        if (max < data.length) {
-          max = data.length;
-        }
+        if (max < data.length) max = data.length;
         data.forEach((item) => {
           if (item.$children) {
             getMaxCol(item.$children);
@@ -204,183 +268,155 @@ export default {
       })(items);
       return max;
     },
-    headerRowspan(children){
-      let that= this, max = 0;
-      (function getMaxLine(childs, floor){
-        childs.forEach(child => {
-          if(child.$options.name === 'jeTableColumn'){
-            if (floor > max) max = floor;
-            if(child.$children && child.$children.length>0){
-              getMaxLine(child.$children, floor + 1)
-            }           
+    headerRowspan(children) {
+      let max = 0;
+      (function getMaxLine(childs, floor) {
+        childs.forEach((child) => {
+          if (floor > max) max = floor;
+          if (child.$children && child.$children.length > 0) {
+            getMaxLine(child.$children, floor + 1);
           }
-        })
+        });
       })(children, 1);
-      return max
+      return max;
     },
-    columnsHandle(treeData) {
-      const that = this, maxFloor = this.maxLine;
-      that.headColumns.push([])
-      const colsEach = (data, index) => {
-        if (that.headColumns[index] === undefined) {
-          that.headColumns[index] = [];
-        }
-        data.forEach((item) => {    
-          item.last = false    
-          if (item.$children && item.$children.length>0) {
-            item.colspan = that.headerColspan(item.$children);
-            item.rowspan = maxFloor - that.headerRowspan(item.$children);
-            colsEach(item.$children, index + 1);
-          }else{
-            item.rowspan = maxFloor
-            item.colspan = 1
-            item.last = true
+    handleBodyColumns() {
+      let cols = [];
+      const forColumn = (childs) => {
+        childs.forEach((child) => {
+          if (child.$children && child.$children.length > 0) {
+            forColumn(child.$children);
+          } else {
+            cols.push(child);
           }
-          that.headColumns[index].push(item);
-        })
-      }
-      colsEach(treeData, 0);
+        });
+      };
+      forColumn(this.columnsFilter);   
+      this.bodyColumns = cols;
     },
-    calcWidth(){
-      let that= this, totalWidth = 0;
-      that.barWidth = that.getScrollbarWidth()
-      if(that.allWidth >= that.$el.clientWidth){
-        totalWidth = that.allWidth + 1
-        that.botScroll = true
-      }else{
-        totalWidth = that.$el.clientWidth - that.surplusLength - that.barWidth + 1
-      }
-      that.totalWidth = totalWidth;
-      // 计算实际百分比值
-      let pers = that.percount(that.bodyColumns, totalWidth-that.fixedWidth), 
-        meanVal = (100 - pers[0])/that.surplusLength;
-      that.totalPer = pers[1];
-      for(let k in that.totalPer){
-        that.totalPer[k] =  that.totalPer[k] + meanVal
-      }
-      that.handleScroll();
-    },
-    resize() {
-      let that= this;
-      window.addEventListener('resize',function(){
-        that.calcWidth();
-        that.handleScroll();
-        that.rightShadow = (that.allWidth <= that.$el.clientWidth) ? false : true;
-      },false)
-    },
-    // 设置每列的宽度
-    setColWidth(item){
-      return item.minWidth && item.minWidth != '' ? {minWidth:parseInt(item.minWidth-1)+'px'} 
-      : {width:parseInt(item.width-1)+'px'}
-    },
-    // 根据最小宽度计算百分比
-    percount(arr,surplus){
-      let objs = {}, total = 0;
-      arr.forEach((val,i)=>{
-        if(val.minWidth && val.minWidth > 0){
-          let fixVal = parseInt(val.minWidth)/surplus * 100;
-          objs[''+i+''] = parseInt(fixVal);
-          total += parseInt(fixVal)
+    handleColumns() {
+      let maxLine = this.headerRowspan(this.columnsFilter) || 1;
+      this.headColumns.push([]);
+      const colsEach = (data, index) => {
+        if (this.headColumns[index] === undefined) {
+          this.headColumns[index] = [];
         }
-      });
-      return [total,objs];
+        data.forEach((item) => {
+          item.last = false;
+          if (item.$children && item.$children.length > 0) {
+            item.colspan = this.headerColspan(item.$children);
+            item.rowspan = maxLine - this.headerRowspan(item.$children);
+            colsEach(item.$children, index + 1);
+          } else {
+            item.rowspan = maxLine;
+            item.colspan = 1;
+            item.last = true;
+          }
+          this.headColumns[index].push(item);
+        });
+      };
+      colsEach(this.columnsFilter, 0);
+    },
+    windowResize() {
+      window.addEventListener( "resize", () => {
+        this.calcAllWidth();
+        let bodyWrap = this.$refs.bodywrap;
+        let compare = bodyWrap.scrollHeight > bodyWrap.clientHeight ? true : false;
+        this.rightShadow = this.caclWidth <= this.$el.clientWidth ? false : true;
+      }, false );
     },
     // 获取浏览器滚动条的宽度
     getScrollbarWidth() {
-      let sdiv = document.createElement('div'),//创建一个div
-        styles = {
-          width: '100px',
-          height: '100px',
-          overflowY: 'scroll'//让他有滚动条
-        }, i, barWidth, barHeight;
-      for (i in styles) sdiv.style[i] = styles[i];
-      document.body.appendChild(sdiv);   //把div添加到body中
-      barWidth = sdiv.offsetWidth - sdiv.clientWidth;
-      barHeight = sdiv.offsetHeight - sdiv.clientHeight;
-      sdiv.remove();//移除创建的div
-      return barWidth;//返回滚动条宽度
+      let e = document.createElement("div"), sw;
+      e.style.cssText = `width:100px;height:100px;position:absolute;top:-99999px;overflow:scroll;`;
+      document.body.appendChild(e);
+      sw = e.offsetWidth - e.clientWidth;
+      document.body.removeChild(e);
+      return sw;
     },
     // 设置滚动条值
-    handleScroll(){
-      let that = this, bodyWrap = that.$refs.bodywrap;
-      bodyWrap.addEventListener('scroll',(ev)=>{
-        ev.stopPropagation(); 
-        let tagLeft = ev.target.scrollLeft, tagTop = ev.target.scrollTop
-        if(that.leftData.length>0){
-          that.$refs.leftfixbody.scrollTop =  tagTop;
-          that.leftShadow = tagLeft > 0 ? true : false;
-        } 
-        if(that.rightData.length>0){
-          that.$refs.rightfixbody.scrollTop =  tagTop;
-          if(bodyWrap.scrollWidth - tagLeft === bodyWrap.clientWidth){
-            that.rightShadow = false;
-          }else{
-            that.rightShadow = true
-          }
-        } 
-        that.$refs.headwrap.scrollLeft =  tagLeft;
-      })           
+    handleScrollBody(ev) { 
+      let bodyWrap = this.$refs.bodywrap;
+      let scrollLeft = ev.target.scrollLeft, scrollTop = ev.target.scrollTop;
+      bodyWrap.scrollTop = scrollTop;
+      if (this.leftData.length > 0) {
+        this.$refs.leftfixbody.scrollTop = scrollTop;
+        this.leftShadow = scrollLeft > 0 ? true : false;
+      }
+      if (this.rightData.length > 0) {
+        this.$refs.rightfixbody.scrollTop = scrollTop;
+        // let compare = bodyWrap.scrollHeight > bodyWrap.clientHeight ? true : false;
+        this.rightShadow = (bodyWrap.scrollWidth - scrollLeft === bodyWrap.clientWidth) ? false : true;
+      }    
+      this.$refs.headwrap.scrollLeft = scrollLeft;
     },
-    getSelectAll() {
-      return this.selectedRows
+    handleScrollFixed(event, data) {
+      let bodyWrap = this.$refs.bodywrap;
+      if (Math.abs(data.spinY) > 0) {
+        const currentScrollTop = bodyWrap.scrollTop;
+        if (data.pixelY < 0 && currentScrollTop !== 0) {
+          event.preventDefault();
+        }
+        if (data.pixelY > 0 && bodyWrap.scrollHeight - bodyWrap.clientHeight > currentScrollTop) {
+          event.preventDefault();
+        }
+        bodyWrap.scrollTop += Math.ceil(data.pixelY / 1);
+      } else {
+        bodyWrap.scrollLeft += Math.ceil(data.pixelX / 1);
+      }
     },
-    clearSelection () {
-      let that = this;
+    getAllCheck() {
+      return this.checkRows;
+    },
+    clearCheck() {
       // 用于多选表格，清空用户的选择
-      that.selectedRows.splice(0, that.selectedRows.length)
-      that.selectChecked = 'unSelect'
+      this.checkRows.splice(0, this.checkRows.length);
+      this.selectChecked = "unSelect";
     },
-    toggleAllSelection() {
-      let that = this;
+    toggleAllCheck() {
       // 用于多选表格，切换所有行的选中状态
-      that.selectedRows = [...that.tableData]
-      that.selectChecked = 'checked'
+      this.checkRows = [...this.tableData];
+      this.selectChecked = "checked";
     },
     toggleRowSelection(row, selected) {
-      let that = this;
       // 用于多选表格，切换某一行的选中状态，如果使用了第二个参数，则是设置这一行选中与否（selected 为 true 则选中）row, selected
-      const index = that.selectedRows.indexOf(row)
+      const index = this.checkRows.indexOf(row);
       if (selected === false) {
         // 取消勾选当前行
-        if (index !== -1) that.selectedRows.splice(index, 1)
+        if (index !== -1) this.checkRows.splice(index, 1);
       } else {
         // 勾选当前行，没有时添加。有时不重复添加
-        if (index === -1) that.selectedRows.push(row)
+        if (index === -1) this.checkRows.push(row);
       }
-    },
-    handleSelectAll() {
-      let that = this;
-      if (that.selectChecked === 'checked') {
-        that.clearSelection()
-      } else {
-        that.toggleAllSelection()
-      }
-      that.selectAllClick && that.selectAllClick(that.selectedRows)
-    },
+    }, 
+    // 全选或返选状态
     selectStatus() {
-      let that = this;
-      // 全选或返选状态
-      if (that.selectedRows.length === that.tableData.length) {
-        that.selectChecked = 'checked'
+      if (this.checkRows.length === this.tableData.length) {
+        this.selectChecked = "checked";
       } else {
-        that.selectChecked = that.selectedRows.length > 0 ? 'someSelect' : 'unSelect';
+        this.selectChecked = this.checkRows.length > 0 ? "someSelect" : "unSelect";
       }
     },
+    // 单选
     handleChange(row) {
-      let that = this;
       // 提供给column引用 ，单选行时
-      // 单选checkbox，选中时将当前行信息存入selectedRows，没勾选时删除
-      const index = that.selectedRows.indexOf(row)
+      // 单选checkbox，选中时将当前行信息存入checkRows，没勾选时删除
+      const index = this.checkRows.indexOf(row);
       if (index !== -1) {
-        that.selectedRows.splice(index, 1);
+        this.checkRows.splice(index, 1);
       } else {
-        that.selectedRows.push(row);
+        this.checkRows.push(row);
       }
       // 全选时将selectAll也选上
-      that.selectStatus();
-      that.selectClick && that.selectClick(row);
-    }
-  }
-}
+      this.selectStatus();
+      this.$emit('select',{selection: this.checkRows, row})
+    },
+    // 全选
+    handleSelectAll() {
+      this.selectChecked === "checked" ? this.clearCheck() : this.toggleAllCheck()
+      this.$emit('select-all',{selection: this.checkRows})
+    },
+  },
+};
 </script>
 

@@ -5,9 +5,9 @@
         <div class="je-select-multiple-list">
           <em class="placeholder" v-if="multipleList.length == 0">{{placeholder}}</em>
           <template v-if="multipleList.length > 0">
-            <span v-for="(item, index) in multipleList" :key="index">
+            <span class="je-select-tags" v-for="(item, index) in multipleList" :key="index">
               {{ item.label }}
-              <Icon v-if="!item.disabled"
+              <JeIcon v-if="!item.disabled"
                 type="icon-normal-close"
                 size="12px"
                 @click.stop="closeTags(item)"
@@ -15,12 +15,13 @@
             </span>
           </template>
         </div>
-        <Icon type="icon-movedown" v-if="multiple" />
+        <span>
+        <JeIcon type="icon-movedown" class="je-c9" :class="arrowsClass" v-if="multiple" />
+        </span>
       </div>
 
-      <Input
+      <JeInput
         v-model="queryValue"
-        suffix="icon-movedown"
         v-if="!multiple"
         width="100%"
         :placeholder="placeholder"
@@ -30,16 +31,20 @@
         @blur="handleBlur"
         @keyup.native="handleQueryChange"
         @paste.native="handleQueryChange"
-      />
+      >
+      <JeIcon type="icon-movedown" class="je-pr4 je-c9" :class="arrowsClass" slot="suffix" />
+      </JeInput>
     </div>
     <transition name="jedrop">
-      <div ref="main" :class="openClass" v-show="visible" :style="openStyle">
-        <p class="je-select-item je-tc" v-if="loadFound">
-          {{ emptyText }}
-        </p>
-        <template v-show="!loadFound">
-          <slot></slot>
-        </template>
+      <div ref="main" :class="openClass" v-show="visible" :style="openStyle" @mouseenter="openHeight">
+        <Scrollbar>
+          <p class="je-select-item je-tc" v-if="loadFound">
+            {{ emptyText }}
+          </p>
+          <template v-show="!loadFound">
+            <slot></slot>
+          </template>
+        </Scrollbar>
       </div>
     </transition>
   </div>
@@ -51,8 +56,9 @@ import { setElementSize } from "../../utils/dom";
 import {debounce} from "../../utils/util"
 import clickOutside from "../../utils/clickoutside";
 import { findComponentsDownward } from "../../utils/findComponent";
-import Icon from "../icon/Icon";
-import Input from "../input/Input";
+import Scrollbar from '../scrollbar/Scrollbar';
+import JeIcon from "../icon/Icon";
+import JeInput from "../input/Input";
 // const selectPanels = [];
 export default {
   name: "jeSelect",
@@ -124,8 +130,9 @@ export default {
     filterMethod: Function
   },
   components: {
-    Input,
-    Icon
+    Scrollbar,
+    JeInput,
+    JeIcon
   },
   provide() {
     return {
@@ -348,8 +355,13 @@ export default {
       let style = setElementSize(this.$el, this.$refs.main);
       if (this.openWidth !== "") {
         style.width = this.openWidth || this.width;
-      }
+      }    
       this.openStyle = Object.assign({ zIndex: this.zIndex }, style);
+    },
+    openHeight() {
+      if(this.$refs.main.offsetHeight >= 226) {
+        this.$set(this.openStyle,'height','226px')
+      }
     },
     handleFocus(event) {
       if(this.filterable){
@@ -407,6 +419,12 @@ export default {
   computed: {
     inputClass() {
       return ["je-select-input", this.size];
+    },
+    arrowsClass() {
+      return [
+        "je-select-arrows",
+        {["openarrows"]:this.visible}
+      ]
     },
     multipleClass(){
       return [

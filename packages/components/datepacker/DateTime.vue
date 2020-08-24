@@ -3,8 +3,10 @@
   <div class="datepicker-time" v-for="(times, index) in timeList" :key="index">
     <div class="time-head">{{showTimeText(timeText[index])}}</div>
     <div class="time-body">
-      <div class="time-item" v-for="(item,idx) in times" :key="idx" ref="time" jeScroll>
+      <div class="time-item" v-for="(item,idx) in times" :key="idx" ref="time">
+        <Scrollbar :scrollTop="timeTop[idx]">
         <p v-for="(t,ids) in item" :key="ids" :class="t.style" @click="selectTime(t,index)">{{t.value}}</p>
+        </Scrollbar>
       </div>
     </div>
   </div>
@@ -12,17 +14,17 @@
 </template>
 
 <script>
-import Scrollbar from '../../utils/scrollbar.js'
+import Scrollbar from '../scrollbar/Scrollbar.vue'
 export default {
   name: "DateTime",
   props: {
     date:{
       type: Array,
-      default: () => []
+      default() { return [] }
     },
     select: {
       type: Array,
-      default: () => []
+      default() { return [] }
     },
     multiPane: {
       type: Boolean,
@@ -41,8 +43,12 @@ export default {
       default: ""
     }
   },
+  components: {
+    Scrollbar
+  },
   data() {
     return {
+      timeTop: [0,0,0],
       timeList: [],
       timeText: [],
       formathms:["hh","mm","ss"]
@@ -51,7 +57,6 @@ export default {
   mounted() {
     this.renderTime()
     this.$nextTick(() => {   
-      Scrollbar.initAll();
       this.setScrollTop()
     })
   },
@@ -92,11 +97,13 @@ export default {
         this.setScrollTop();
       })
     },
-    setScrollTop(ev){   
-      this.$refs.time.forEach(el => {
+    setScrollTop(ev){ 
+      let topArr = [];  
+      this.$refs.time.forEach((el) => {
         let topVal = el.querySelector('p.selected').offsetTop;   
-        el.querySelector('[scrollcontent]').scrollTop = topVal - 100;
+        topArr.push(topVal - 100)
       })
+      this.$set(this,'timeTop',topArr)
     }
   },
   computed: {
@@ -105,9 +112,6 @@ export default {
         return `${objs.hh} ：${objs.mm} ：${objs.ss}`
       }
     }
-  },
-  destroyed () {
-    Scrollbar.unbindAll();
   }
 }
 </script>

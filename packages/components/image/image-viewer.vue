@@ -83,7 +83,7 @@ export default {
   props: {
     urlList: {
       type: Array,
-      default: () => [],
+      default() { return [] },
     },
     zIndex: {
       type: Number,
@@ -91,11 +91,11 @@ export default {
     },
     onSwitch: {
       type: Function,
-      default: () => {},
+      default() { return {} },
     },
     onClose: {
       type: Function,
-      default: () => {},
+      default() { return {} },
     },
     initialIndex: {
       type: Number,

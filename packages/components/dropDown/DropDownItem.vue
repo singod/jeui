@@ -25,7 +25,7 @@ export default {
     },
     command: {
       type: [String,Number,Object],
-      default: () => {}
+      default() { return {} }
     }
   },
   data() {

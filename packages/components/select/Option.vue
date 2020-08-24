@@ -1,13 +1,15 @@
 <template>
-  <div :class="activeClass" :key="value" @click.stop="selectOpiton" 
+  <div :class="itemClass" :key="value" @click.stop="selectOpiton" 
   @mouseout.stop="blur" v-if="showHide">
-    <slot>{{ currentLabel }}</slot>
+    <div class="je-show je-boxflex"><slot>{{ currentLabel }}</slot></div>
+    <JeIcon type="icon-draw" class="select-item-arrows"/>
   </div>
 </template>
 
 <script>
   import Emitter from '../../utils/emitter'
   import {findParentComponent} from "../../utils/findComponent";
+  import JeIcon from "../icon/Icon";
   export default {
     name: "jeOption",
     mixins: [Emitter],
@@ -25,6 +27,9 @@
         type: Boolean,
         default: false
       }
+    },
+    components: {
+      JeIcon
     },
     data(){
       return {
@@ -81,9 +86,9 @@
         let isObject = Object.prototype.toString.call(this.value).toLowerCase() === '[object object]';
         return this.label ? this.label : (isObject ? "" : this.value);
       },
-      activeClass(){
+      itemClass(){
         return [
-          "je-select-item",
+          "je-select-item","je-flex","je-align-center",
           {
             ["option-active"]:this.selected,
             ["option-disabled"]:this.disabled,

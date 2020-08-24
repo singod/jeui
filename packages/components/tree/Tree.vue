@@ -39,11 +39,11 @@ export default {
     },
     props: {
       type: Object,
-      default: () => {}
+      default() { return {} }
     },
     setCheckedKeys: {
       type: Array,
-      default: () => []
+      default() { return [] }
     },
     toggle: Function,
     click: Function,

@@ -62,7 +62,7 @@ export default {
     },
     sidebar: {
       type: Array,
-      default: () => []
+      default() { return [] }
     },
     format: {
       type: String,
