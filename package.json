@@ -1,6 +1,6 @@
 {
   "name": "jeui",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Jeui is a high quality UI components Library",
   "private": false,
   "main": "lib/jeui.umd.min.js",

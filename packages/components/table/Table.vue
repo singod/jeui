@@ -135,6 +135,7 @@ export default {
     getAllColumn() {
       this.$nextTick(() => {        
         let columns = [], leftWidth = 0, rightWidth = 0;
+        this.barWidth = this.getScrollbarWidth();
         // 遍历子组件，只返回column组件
         this.recursionProps(this.$children).forEach((child) => {
           columns.push(child);
@@ -177,10 +178,9 @@ export default {
       return columns;
     },
     calcAllWidth() {
-      let allColsWidth = [], widthValue = 0, miniWidthSize = 0, caclBeforeWidth = 0,
+      let allColsWidth = [], widthValue = 0, miniWidthSize = 0, rawWidth = 0,
         boxWidth = this.$refs.box.clientWidth, totalWidth = 0;      
-      this.barWidth = this.getScrollbarWidth();
-      
+            
       // 递归遍历出所有宽度
       (function everyWidth(childs) {
         childs.forEach((child) => {
@@ -194,24 +194,24 @@ export default {
       })(this.columnsFilter);
       // 遍历出剩余的值
       allColsWidth.forEach(item => {
-        caclBeforeWidth += (item.colWidth ? item.colWidth : item.colMinWidth);
+        rawWidth += (item.colWidth ? item.colWidth : item.colMinWidth);
         if(item.colMinWidth && item.colMinWidth > 0) miniWidthSize += 1;
         if(item.colWidth && item.colWidth > 0) widthValue += item.colWidth;
       });
-      if(caclBeforeWidth < boxWidth) {
+      if(rawWidth < boxWidth) {
         let surplusWidth = boxWidth - widthValue, minPer = {}, total = 0;
         // 遍历计算出剩余知道百分比
         allColsWidth.forEach((item, i) => {
           if (item.colMinWidth && item.colMinWidth > 0) {
-            let fixVal = (parseInt(item.colMinWidth) / surplusWidth) * 100;
+            let fixVal = (Math.floor(item.colMinWidth) / surplusWidth) * 100;
             minPer[`${i}`] = parseInt(fixVal);
             total += parseInt(fixVal);
           }
         });
         // 根据剩余值和剩余百分比计算出真正值
-        let surplusPers = (100 - total) / miniWidthSize;
+        let surplusPers = Math.floor((100 - total) / miniWidthSize);
         for (let k in minPer) {
-          let realWidth = parseInt(surplusWidth * (minPer[k] + surplusPers) / 100);
+          let realWidth = Math.floor(surplusWidth * (minPer[k] + surplusPers) / 100);
           // 判断计算后的值是否大于最小值
           if(realWidth > allColsWidth[k].colMinWidth) {
             allColsWidth[k].colMinWidth = realWidth;
